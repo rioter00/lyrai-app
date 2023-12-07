@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 import "./App.css";
 import Prompt from "./components/Prompt";
+import Audio from "./components/Audio";
 
 function App() {
   const [width, setWidth] = useState(0);
@@ -104,13 +105,13 @@ function App() {
       <div className="row justify-content-between">
         <input
           type="number"
-          placeholder="Enter new Wdt."
+          placeholder="Wdt."
           id="widthInput"
           className="m-1 col-3 text-center"
         />
         <input
           type="number"
-          placeholder="Enter new Ht."
+          placeholder="len."
           id="heightInput"
           className="m-1 col-3 text-center"
         />
@@ -124,11 +125,11 @@ function App() {
         </button>
       </div>
       <div className="row mt-2">
-        <p>
+        <small>
           {width > 0 && height > 0
             ? `Room Dimensions (ft): ${width} * ${height}. ${" "} Positions: ${rowLength} X : ${columnLength} Y at ${gridSize} ft. intervals.`
-            : "Please enter the values"}
-        </p>
+            : "Please enter width and height values"}
+        </small>
       </div>
       <hr />
       {/*  */}
@@ -162,9 +163,8 @@ function App() {
           Next
         </button>
       </div>
-      {/* <div>
-        <small>CARDINAL directions N E S W (clockwise)</small>
-      </div> */}
+      {/* <Audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" /> */}
+      <Audio src="./meep.wav" />
     </>
   );
 }
