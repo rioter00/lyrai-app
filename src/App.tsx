@@ -12,7 +12,7 @@ function App() {
   const [columnLength, setColumnLength] = useState(0);
   // const [positionIndex, setPositionIndex] = useState(0);
 
-  const gridSize = 3;
+  const gridSize = 6;
 
   useEffect(() => {
     if (window.localStorage.getItem("width") == "") return;
@@ -30,43 +30,68 @@ function App() {
   }, []);
 
   const calculatePositions = (widthNumber: number, heightNumber: number) => {
-    if (widthNumber % gridSize == 0) {
-      let newLength = Math.floor(widthNumber / gridSize) - 1;
+    if (widthNumber % gridSize < 3) {
+      let newLength = Math.floor(widthNumber / gridSize) + 1;
       if (newLength <= 0) {
         newLength = 1;
       }
       setRowLength(newLength);
     } else {
-      setRowLength(Math.floor(widthNumber / gridSize));
+      setRowLength(Math.floor(widthNumber / gridSize) + 2);
     }
-    if (heightNumber % gridSize == 0) {
-      let newHeight = Math.floor(heightNumber / gridSize) - 1;
+    if (heightNumber % gridSize == 0 || heightNumber % gridSize == 1) {
+      let newHeight = Math.floor(heightNumber / gridSize) + 1;
       if (newHeight <= 0) {
         newHeight = 1;
       }
       setColumnLength(newHeight);
     } else {
-      setColumnLength(Math.floor(heightNumber / gridSize));
+      setColumnLength(Math.floor(heightNumber / gridSize) + 2);
     }
   };
 
   const calculatePrompt = () => {
-    const positionIndex = Math.floor(promptIndex / 4);
+    const positionIndex = Math.floor(promptIndex / 12);
     const currentX = positionIndex % rowLength;
     const currentY = Math.floor(positionIndex / rowLength);
-    const currentZ = promptIndex % 4;
+    const currentZ = Math.floor(promptIndex / 4) % 3;
     console.log("Current X: ", currentX);
     console.log("Current Y: ", currentY);
     console.log("Current Z: ", currentZ);
     console.log("Prompt Index: ", promptIndex);
     console.log("Position Index: ", positionIndex);
     //
-    const prompt1 = `Position Mic at ${currentX * gridSize}, ${
-      currentY * gridSize
-    }, ${currentZ * gridSize}.`;
-    const prompt2 = `Record with impulses at N, E, S, W at 0, 3, 6, 9 heights.`;
+    const XPos =
+      currentX == rowLength - 1 ? "W" : (currentX * gridSize).toString();
+
+    const YPos =
+      currentY == columnLength - 1 ? "N" : (currentY * gridSize).toString();
+
+    let impulseDireciton;
+    switch (Math.floor(promptIndex % 4)) {
+      case 0: {
+        impulseDireciton = "N";
+        break;
+      } // North
+      case 1: {
+        impulseDireciton = "E";
+        break;
+      } // East
+      case 2: {
+        impulseDireciton = "S";
+        break;
+      } // South
+      case 3: {
+        impulseDireciton = "W";
+        break;
+      } // West
+    }
+    const prompt1 = `Position Mic at ${XPos}, ${YPos}, ${currentZ * 6}.`;
+    const prompt2 = `Record with impulses at ${impulseDireciton} at 3, 6, 9 heights.`;
     const prompt3 =
-      promptIndex % 4 == 2 ? "Record CORNERS and CENTER at 6 feet height." : "";
+      promptIndex % 12 == 7
+        ? "Then Record CORNERS and CENTER at 6 feet height."
+        : "";
     return (
       <Prompt
         prompt1={prompt1}
@@ -74,6 +99,7 @@ function App() {
         prompt3={prompt3}
         index={promptIndex}
         positionIndex={positionIndex}
+        slapInterval={4000}
       />
     );
   };
@@ -101,70 +127,84 @@ function App() {
 
   return (
     <>
-      <h1 className="my-4">Lyrai Recording Prompter</h1>
-      <div className="row justify-content-between">
-        <input
-          type="number"
-          placeholder="Wdt."
-          id="widthInput"
-          className="m-1 col-3 text-center"
-        />
-        <input
-          type="number"
-          placeholder="len."
-          id="heightInput"
-          className="m-1 col-3 text-center"
-        />
-        <button
-          className="m-1 col-3 btn btn-primary btn-sm"
-          onClick={() => {
-            calculateDimnensions();
-          }}
-        >
-          Submit
-        </button>
+      <div className="border rounded m-4">
+        <div className="bg-warning p-1 w-90 col-12 mb-4">
+          <h4 className="mt-4">Lyrai Recording Prompter</h4>
+          <span>(0.0.2)</span>
+        </div>
+        <div className="justify-content-between col-12">
+          <input
+            type="number"
+            placeholder="width"
+            id="widthInput"
+            className="m-1 col-3 text-center"
+          />
+          <input
+            type="number"
+            placeholder="length"
+            id="heightInput"
+            className="m-1 col-3 text-center"
+          />
+          <button
+            className="m-1 col-3 btn btn-primary btn-sm"
+            onClick={() => {
+              calculateDimnensions();
+            }}
+          >
+            Submit
+          </button>
+        </div>
+        <div className="row mt-2">
+          <small>
+            {width > 0 && height > 0
+              ? `Room Dimensions (ft): ${width} * ${height}. ${" "} Positions: ${rowLength} X : ${columnLength} Y at ${gridSize} ft. intervals.`
+              : "Please enter width and height values"}
+          </small>
+        </div>
+        <hr />
+        {/*  */}
+        {calculatePrompt()}
+        {/*  */}
+        <hr />
+        <div className="justify-content-between">
+          <button
+            className="btn btn-primary btn-sm m-1 col-3"
+            onClick={() => {
+              if (promptIndex == 0) return;
+              setPromptIndex(promptIndex - 1);
+              window.localStorage.setItem(
+                "promptIndex",
+                (promptIndex - 1).toString()
+              );
+            }}
+          >
+            Previous
+          </button>
+          <button
+            className="btn btn-primary btn-sm m-1 col-4"
+            onClick={() => {
+              setPromptIndex(0);
+              window.localStorage.setItem("promptIndex", (0).toString());
+            }}
+          >
+            Reset Index
+          </button>
+          <button
+            className="btn btn-primary btn-sm m-1 col-3"
+            onClick={() => {
+              setPromptIndex(promptIndex + 1);
+              window.localStorage.setItem(
+                "promptIndex",
+                (promptIndex + 1).toString()
+              );
+            }}
+          >
+            Next
+          </button>
+        </div>
+        {/* <Audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" /> */}
+        <Audio src="https://github.com/rioter00/lyrai-app/raw/e84795bf79848a38122d1a97e727a765f1550813/src/assets/meep.wav" />
       </div>
-      <div className="row mt-2">
-        <small>
-          {width > 0 && height > 0
-            ? `Room Dimensions (ft): ${width} * ${height}. ${" "} Positions: ${rowLength} X : ${columnLength} Y at ${gridSize} ft. intervals.`
-            : "Please enter width and height values"}
-        </small>
-      </div>
-      <hr />
-      {/*  */}
-      {calculatePrompt()}
-      {/*  */}
-      <hr />
-      <div className="row justify-content-between">
-        <button
-          className="btn btn-primary btn-sm m-1 col-4"
-          onClick={() => {
-            if (promptIndex == 0) return;
-            setPromptIndex(promptIndex - 1);
-            window.localStorage.setItem(
-              "promptIndex",
-              (promptIndex - 1).toString()
-            );
-          }}
-        >
-          Previous
-        </button>
-        <button
-          className="btn btn-primary btn-sm m-1 col-4"
-          onClick={() => {
-            setPromptIndex(promptIndex + 1);
-            window.localStorage.setItem(
-              "promptIndex",
-              (promptIndex + 1).toString()
-            );
-          }}
-        >
-          Next
-        </button>
-      </div>
-      {/* <Audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" /> */}
-      <Audio src="./meep.wav" />
     </>
   );
 }

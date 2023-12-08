@@ -17,7 +17,7 @@ const Audio = ({ src }: AudioProps) => {
   return (
     console.log("Is playing: ", isPlaying),
     (
-      <div className="my-2">
+      <div className="m-4">
         <audio
           src={src}
           controls={true}
